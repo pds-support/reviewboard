@@ -124,6 +124,26 @@ class X509AuthMiddleware(object):
     with a username and password.
     """
 
+    def _get_field(self, setting_name, env):
+        setting = getattr(settings, setting_name, None)
+        if setting:
+            return env.get(setting, "")
+        else:
+            return ""
+
+    def clean_username(self, username, request):
+        """
+        Allow the backend to clean the username, if the backend defines a
+        clean_username method.
+        """
+        backend_str = request.session[auth.BACKEND_SESSION_KEY]
+        backend = auth.load_backend(backend_str)
+        try:
+            username = backend.clean_username(username)
+        except AttributeError:  # Backend has no clean_username method.
+            pass
+        return username
+
     def process_request(self, request):
         """If using X509 authentication, log users in by their certificate."""
         if ('reviewboard.accounts.backends.X509Backend'
@@ -143,16 +163,26 @@ class X509AuthMiddleware(object):
                           type(request))
             env = {}
 
-        x509_settings_field = getattr(settings, 'X509_USERNAME_FIELD', None)
+        x509_username_field = getattr(settings, "X509_USERNAME_FIELD")
 
-        if x509_settings_field:
-            x509_field = env.get(x509_settings_field)
+        username = env.get(x509_username_field)
 
-            if x509_field:
-                user = auth.authenticate(x509_field=x509_field)
-
-                if user:
-                    request.user = user
-                    auth.login(request, user)
-
-        return None
+        # If the user is already authenticated and that user is the user we are
+        # getting passed in the headers, then the correct user is already
+        # persisted in the session and we don't need to continue.
+        if request.user.is_authenticated() and (
+            request.user.get_username() == self.clean_username(username,
+                                                               request)
+        ):
+            first_name = self._get_field('X509_FIRSTNAME_FIELD', env)
+            last_name = self._get_field('X509_LASTNAME_FIELD', env)
+            email = self._get_field('X509_EMAIL_FIELD', env)
+            user = auth.authenticate(
+                username=username,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+            )
+            if user:
+                request.user = user
+                auth.login(request, user)

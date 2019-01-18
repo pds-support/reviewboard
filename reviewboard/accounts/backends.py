@@ -1069,58 +1069,59 @@ class X509Backend(AuthBackend):
     backend_id = 'x509'
     name = _('X.509 Public Key')
     settings_form = X509SettingsForm
-    supports_change_password = True
+    supports_change_password = False
 
-    def authenticate(self, x509_field=""):
+    def _clean(self, field, regex_setting):
+        field = field.strip()
+        setting = getattr(settings, regex_setting, None)
+
+        if setting:
+            try:
+                m = re.match(setting, field)
+                if m:
+                    field = m.group(1)
+                else:
+                    logging.warning("X509Backend: field '%s' didn't match "
+                                    "regex.", field)
+            except sre_constants.error as e:
+                logging.error("X509Backend: Invalid regex specified: %s",
+                              e, exc_info=1)
+
+        return field
+
+    def authenticate(self, username="", first_name="", last_name="", email=""):
         """Authenticate the user.
 
         This will extract the username from the provided certificate and return
         the appropriate User object.
         """
-        username = self.clean_username(x509_field)
-        return self.get_or_create_user(username, None)
+
+        username = self.clean_username(username)
+        first_name = self._clean(first_name, 'X509_FIRSTNAME_REGEX')
+        last_name = self._clean(last_name, 'X509_LASTNAME_REGEX')
+        email = self._clean(email, 'X509_EMAIL_REGEX')
+        return self.get_or_create_user(username, None, first_name=first_name,
+                                       last_name=last_name, email=email)
 
     def clean_username(self, username):
-        """Validate the 'username' field.
+        return self._clean(username, 'X509_USERNAME_REGEX')
 
-        This checks to make sure that the contents of the username field are
-        valid for X509 authentication.
-        """
-        username = username.strip()
-
-        if settings.X509_USERNAME_REGEX:
-            try:
-                m = re.match(settings.X509_USERNAME_REGEX, username)
-                if m:
-                    username = m.group(1)
-                else:
-                    logging.warning("X509Backend: username '%s' didn't match "
-                                    "regex.", username)
-            except sre_constants.error as e:
-                logging.error("X509Backend: Invalid regex specified: %s",
-                              e, exc_info=1)
-
-        return username
-
-    def get_or_create_user(self, username, request):
+    def get_or_create_user(self, username, request, **kwargs):
         """Get an existing user, or create one if it does not exist."""
-        user = None
         username = username.strip()
 
         try:
-            user = User.objects.get(username=username)
+            return User.objects.get(username=username)
         except User.DoesNotExist:
-            # TODO Add the ability to get the first and last names in a
-            #      configurable manner; not all X.509 certificates will have
-            #      the same format.
-            if getattr(settings, 'X509_AUTOCREATE_USERS', False):
-                user = User(username=username, password='')
+            if getattr(settings, 'X509_AUTOCREATE_USERS', False) and kwargs:
+                user = User(username=username, password='', **kwargs)
                 user.is_staff = False
                 user.is_superuser = False
                 user.set_unusable_password()
                 user.save()
+                return user
 
-        return user
+        return None
 
 
 def _populate_defaults():

@@ -376,18 +376,12 @@ class NISSettingsForm(SiteSettingsForm):
 class X509SettingsForm(SiteSettingsForm):
     """A form for configuring the X509 certificate authentication backend."""
 
-    auth_x509_username_field = forms.ChoiceField(
+    auth_x509_username_field = forms.CharField(
         label=_("Username Field"),
-        choices=(
-            # Note: These names correspond to environment variables set by
-            #       mod_ssl.
-            ("SSL_CLIENT_S_DN", _("DN (Distinguished Name)")),
-            ("SSL_CLIENT_S_DN_CN", _("CN (Common Name)")),
-            ("SSL_CLIENT_S_DN_Email", _("E-mail address")),
-        ),
         help_text=_("The X.509 certificate field from which the Review Board "
                     "username will be extracted."),
-        required=True)
+        required=True,
+        widget=forms.TextInput(attrs={'size': '40'}))
 
     auth_x509_username_regex = forms.CharField(
         label=_("Username Regex"),
@@ -400,6 +394,54 @@ class X509SettingsForm(SiteSettingsForm):
         required=False,
         widget=forms.TextInput(attrs={'size': '40'}))
 
+    auth_x509_firstname_field = forms.CharField(
+        label=_("Firstname Field"),
+        help_text=_("The X.509 certificate field from which the user's "
+                    "first name will be extracted to be used when "
+                    "autocreating users. Leave blank to ignore."),
+        required=False,
+        widget=forms.TextInput(attrs={'size': '40'}))
+
+    auth_x509_firstname_regex = forms.CharField(
+        label=_("Firstname Regex"),
+        help_text=_("Optional regex used to convert the firstname X.509 "
+                    "certificate field to a usable first name. "
+                    "There must be only one group in the regex."),
+        required=False,
+        widget=forms.TextInput(attrs={'size': '40'}))
+
+    auth_x509_lastname_field = forms.CharField(
+        label=_("Lastname Field"),
+        help_text=_("The X.509 certificate field from which the user's "
+                    "last name will be extracted to be used when "
+                    "autocreating users. Leave blank to ignore."),
+        required=False,
+        widget=forms.TextInput(attrs={'size': '40'}))
+
+    auth_x509_lastname_regex = forms.CharField(
+        label=_("Lastname Regex"),
+        help_text=_("Optional regex used to convert the lastname X.509 "
+                    "certificate field to a usable last name. "
+                    "There must be only one group in the regex."),
+        required=False,
+        widget=forms.TextInput(attrs={'size': '40'}))
+
+    auth_x509_email_field = forms.CharField(
+        label=_("Email Field"),
+        help_text=_("The X.509 certificate field from which the user's "
+                    "email will be extracted to be used when "
+                    "autocreating users. Leave blank to ignore."),
+        required=False,
+        widget=forms.TextInput(attrs={'size': '40'}))
+
+    auth_x509_email_regex = forms.CharField(
+        label=_("Email Regex"),
+        help_text=_("Optional regex used to convert the lastname X.509 "
+                    "certificate field to a usable email address. "
+                    "There must be only one group in the regex."),
+        required=False,
+        widget=forms.TextInput(attrs={'size': '40'}))
+
     auth_x509_autocreate_users = forms.BooleanField(
         label=_("Automatically create new user accounts."),
         help_text=_("Enabling this option will cause new user accounts to be "
@@ -407,9 +449,9 @@ class X509SettingsForm(SiteSettingsForm):
                     "certificate accesses Review Board."),
         required=False)
 
-    def clean_auth_x509_username_regex(self):
+    def _clean_regex(self, data_field):
         """Validate that the specified regular expression is valid."""
-        regex = self.cleaned_data['auth_x509_username_regex']
+        regex = self.cleaned_data[data_field]
 
         try:
             re.compile(regex)
@@ -417,6 +459,18 @@ class X509SettingsForm(SiteSettingsForm):
             raise ValidationError(e)
 
         return regex
+
+    def clean_auth_x509_username_regex(self):
+        return self._clean_regex('auth_x509_username_regex')
+
+    def clean_auth_x509_firstname_regex(self):
+        return self._clean_regex('auth_x509_firstname_regex')
+
+    def clean_auth_x509_lastname_regex(self):
+        return self._clean_regex('auth_x509_lastname_regex')
+
+    def clean_auth_x509_email_regex(self):
+        return self._clean_regex('auth_x509_email_regex')
 
     class Meta:
         title = _('X.509 Client Certificate Authentication Settings')

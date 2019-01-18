@@ -170,9 +170,8 @@ class X509AuthMiddleware(object):
         # If the user is already authenticated and that user is the user we are
         # getting passed in the headers, then the correct user is already
         # persisted in the session and we don't need to continue.
-        if request.user.is_authenticated() and (
-            request.user.get_username() == self.clean_username(username,
-                                                               request)
+        if username and not request.user.is_authenticated() or (
+            request.user.username != self.clean_username(username, request)
         ):
             first_name = self._get_field('X509_FIRSTNAME_FIELD', env)
             last_name = self._get_field('X509_LASTNAME_FIELD', env)

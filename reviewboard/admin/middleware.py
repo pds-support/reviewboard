@@ -20,6 +20,12 @@ from reviewboard.admin.siteconfig import load_site_config
 from reviewboard.admin.views import manual_updates_required
 
 
+def show_debug_toolbar(request):
+    if hasattr(settings, 'DBT_USERNAME_ENV_FIELD'):
+        return request.META.get(settings.DBT_USERNAME_ENV_FIELD, None) in getattr(settings, 'DBT_ADMINS', [])
+    return False
+
+
 class InitReviewBoardMiddleware(object):
     """Handle the initialization of Review Board."""
 
@@ -185,3 +191,5 @@ class X509AuthMiddleware(object):
             if user:
                 request.user = user
                 auth.login(request, user)
+
+

@@ -12,6 +12,8 @@ from reviewboard.hostingsvcs.urls import urlpatterns as hostingsvcs_urlpatterns
 from reviewboard.search.urls import urlpatterns as search_urlpatterns
 from reviewboard.webapi.resources import resources
 
+import debug_toolbar
+
 
 extension_manager = get_extension_manager()
 
@@ -53,7 +55,9 @@ urlpatterns = patterns(
 
     url(r'^jsi18n/', 'djblets.util.views.cached_javascript_catalog',
         {'packages': ('reviewboard', 'djblets')},
-        name='js-catalog')
+        name='js-catalog'),
+
+    url(r'^__debug__/', include(debug_toolbar.urls)),
 )
 
 

@@ -32,6 +32,7 @@ package_dependencies = {
     'django_evolution': '>=0.7.7,<=0.7.999',
     'django-haystack': '>=2.3.1,<=2.4.999',
     'django-multiselectfield': '',
+    'django-debug-toolbar': '==1.3.2',
     'Djblets': djblets_version,
     'docutils': '',
     'markdown': '>=2.4.0,<2.4.999',

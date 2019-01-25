@@ -78,6 +78,8 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.gzip.GZipMiddleware',
     'reviewboard.admin.middleware.InitReviewBoardMiddleware',
 
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.doc.XViewMiddleware',
@@ -172,6 +174,7 @@ RB_BUILTIN_APPS = [
     'djblets.pipeline',
     'djblets.siteconfig',
     'djblets.util',
+    'debug_toolbar',
     'haystack',
     'pipeline',  # Must be after djblets.pipeline
     'reviewboard',
@@ -293,6 +296,11 @@ SVNTOOL_BACKENDS = [
 
 # Gravatar configuration.
 GRAVATAR_DEFAULT = 'mm'
+
+# Debug Toolbar configuration
+DEBUG_TOOLBAR_CONFIG = {
+    "SHOW_TOOLBAR_CALLBACK": 'reviewboard.admin.middleware.show_debug_toolbar'
+}
 
 
 # Load local settings.  This can override anything in here, but at the very

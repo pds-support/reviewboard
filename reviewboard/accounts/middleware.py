@@ -105,8 +105,8 @@ class X509AuthMiddleware(object):
 
             if x509_field:
                 clean_username = self.clean_username(x509_field, request)
-                if (not request.user.is_authenticated()
-                    or request.user.username != clean_username):
+                if (not request.user.is_authenticated() or
+                    request.user.username != clean_username):
 
                     user = auth.authenticate(x509_field=x509_field)
 

@@ -65,3 +65,7 @@ class X509AuthMiddlewareTests(TestCase):
         self.assertIsNone(result)
         self.assertTrue(self.request.user.is_authenticated())
         self.assertEqual(self.request.user.username, 'doc')
+
+        # A second request shouldn't hit the DB
+        with self.assertNumQueries(0):
+            self.middleware.process_request(self.request)

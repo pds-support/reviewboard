@@ -69,6 +69,16 @@ class X509AuthMiddleware(object):
     username and password.
     """
 
+    def clean_username(self, username, request):
+        """Allow the backend to clean the username."""
+        backend_str = request.session[auth.BACKEND_SESSION_KEY]
+        backend = auth.load_backend(backend_str)
+        try:
+            username = backend.clean_username(username)
+        except AttributeError:  # Backend has no clean_username method.
+            pass
+        return username
+
     def process_request(self, request):
         """Log in users by their certificate if using X.509 authentication.
 
@@ -94,8 +104,12 @@ class X509AuthMiddleware(object):
             x509_field = request.environ.get(x509_settings_field)
 
             if x509_field:
-                user = auth.authenticate(x509_field=x509_field)
+                clean_username = self.clean_username(x509_field, request)
+                if (not request.user.is_authenticated()
+                    or request.user.username != clean_username):
 
-                if user:
-                    request.user = user
-                    auth.login(request, user)
+                    user = auth.authenticate(x509_field=x509_field)
+
+                    if user:
+                        request.user = user
+                        auth.login(request, user)

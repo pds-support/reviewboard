@@ -104,7 +104,7 @@ class UserResource(WebAPIResource, DjbletsUserResource):
                     break
 
             if not q:
-                q = Q(username__istartswith=search_q)
+                q = Q(username__istartswith=search_q) | Q(email=search_q)
 
                 if request.GET.get('fullname', None):
                     q = q | (Q(first_name__istartswith=search_q) |

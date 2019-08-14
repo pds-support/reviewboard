@@ -2815,8 +2815,32 @@
 
 .rich-text {
   .markdown-wysiwyg();
+
+  code {
+    margin: 0 2px;
+    padding: 0px 5px;
+    border: 1px solid #ddd;
+    background-color: #f8f8f8;
+    border-radius: 3px;
+  }
+
+  pre {
+    margin-left: 0;
+  }
 }
 
+/****************************************************************************
+ * Codehilite
+ ****************************************************************************/
+
+.codehilite {
+  pre {
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    padding: 6px 10px;
+    border-radius: 3px;
+  }
+}
 
 /****************************************************************************
  * "Update Diff" dialog

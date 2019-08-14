@@ -23,6 +23,9 @@ def markdown_email_html(text, is_rich_text):
         output_format='xhtml1',
         safe_mode='escape')
 
+    # @TODO(jcannon): This is a workaround for me not wanting to fork djblets
+    marked = marked.replace('color: #4444cc;padding: 0;','padding: 0px 5px;border: 1px solid #ddd;background-color: #f8f8f8;border-radius: 3px;color: #000000;')
+    marked = marked.replace('background: #f8f8f8', 'background-color: #f8f8f8;border: 1px solid #ddd;border-radius: 3px')
     return mark_safe(marked)
 
 

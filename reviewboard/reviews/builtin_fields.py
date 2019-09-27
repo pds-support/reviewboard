@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import uuid
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.urlresolvers import NoReverseMatch
 from django.db import models
@@ -403,10 +404,7 @@ class ChangeField(BuiltinFieldMixin, BaseReviewRequestField):
 
         is_pending, changenum = review_request.changeset_is_pending(changenum)
 
-        if is_pending:
-            return escape(_('%s (pending)') % changenum)
-        else:
-            return changenum
+        return settings.RENDER_CHANGENUM(review_request, is_pending, changenum)
 
 
 class CommitField(BuiltinFieldMixin, BaseReviewRequestField):

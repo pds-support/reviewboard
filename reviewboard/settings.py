@@ -302,6 +302,13 @@ DEBUG_TOOLBAR_CONFIG = {
     "SHOW_TOOLBAR_CALLBACK": 'reviewboard.admin.middleware.show_debug_toolbar'
 }
 
+def RENDER_CHANGENUM(review_request, is_pending, changenum):
+    from django.utils.html import escape
+    
+    if is_pending:
+        return escape(_('%s (pending)') % changenum)
+    else:
+        return changenum
 
 # Load local settings.  This can override anything in here, but at the very
 # least it needs to define database connectivity.
